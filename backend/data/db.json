@@ -1,0 +1,294 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+const DATA_DIR = path.join(__dirname, 'data');
+const DATA_FILE = path.join(DATA_DIR, 'db.json');
+
+app.use(cors());
+app.use(express.json());
+
+const defaultData = {
+  users: [
+    {
+      id: 'USR-01',
+      name: 'Library Owner',
+      email: 'owner@library.com',
+      password: 'ChangeMe@12345',
+      role: 'Administrator',
+      status: 'Active',
+    },
+    {
+      id: 'USR-02',
+      name: 'Priya Sharma',
+      email: 'priya@library.com',
+      password: 'library123',
+      role: 'Librarian',
+      status: 'Active',
+    },
+  ],
+  books: [
+    { _id: 'b1', bookId: 'BK-1001', isbn: '978-1-2345-6789-0', bookName: 'Atomic Habits', quantity: 12, availableQuantity: 9, status: 'AVAILABLE' },
+    { _id: 'b2', bookId: 'BK-1002', isbn: '978-0-1234-5678-9', bookName: 'The Alchemist', quantity: 8, availableQuantity: 4, status: 'ISSUED' },
+    { _id: 'b3', bookId: 'BK-1003', isbn: '978-9-8765-4321-0', bookName: 'Rich Dad Poor Dad', quantity: 15, availableQuantity: 12, status: 'AVAILABLE' },
+    { _id: 'b4', bookId: 'BK-1004', isbn: '978-2-3456-7890-1', bookName: 'Deep Work', quantity: 10, availableQuantity: 2, status: 'RESERVED' },
+  ],
+  members: [
+    { _id: 'm1', memberId: 'MEM-101', name: 'Aditi Sharma', email: 'aditi@gmail.com', mobile: '9876543210', status: 'ACTIVE' },
+    { _id: 'm2', memberId: 'MEM-102', name: 'Rahul Verma', email: 'rahul@gmail.com', mobile: '9123456780', status: 'ACTIVE' },
+    { _id: 'm3', memberId: 'MEM-103', name: 'Neha Singh', email: 'neha@gmail.com', mobile: '9988776655', status: 'INACTIVE' },
+  ],
+  issues: [
+    { id: 'ISS-001', member: 'Aditi Sharma', book: 'Atomic Habits', dueDate: '2026-10-05', status: 'Issued' },
+    { id: 'ISS-002', member: 'Rahul Verma', book: 'Deep Work', dueDate: '2026-10-02', status: 'Overdue' },
+    { id: 'ISS-003', member: 'Neha Singh', book: 'The Alchemist', dueDate: '2026-10-07', status: 'Returned' },
+    { id: 'ISS-004', member: 'Vikram Singh', book: 'Rich Dad Poor Dad', dueDate: '2026-10-09', status: 'Issued' },
+  ],
+  fines: [
+    { id: 'FN-101', member: 'Rahul Verma', amount: 250, status: 'Pending' },
+    { id: 'FN-102', member: 'Aditi Sharma', amount: 120, status: 'Paid' },
+    { id: 'FN-103', member: 'Vikram Singh', amount: 380, status: 'Pending' },
+    { id: 'FN-104', member: 'Neha Singh', amount: 90, status: 'Paid' },
+  ],
+  payments: [
+    { id: 'PAY-1001', member: 'Aditi Sharma', method: 'UPI', amount: 420, date: '2026-10-01' },
+    { id: 'PAY-1002', member: 'Rahul Verma', method: 'Card', amount: 680, date: '2026-09-30' },
+    { id: 'PAY-1003', member: 'Neha Singh', method: 'Cash', amount: 150, date: '2026-09-28' },
+    { id: 'PAY-1004', member: 'Vikram Singh', method: 'UPI', amount: 540, date: '2026-09-25' },
+  ],
+  settings: [
+    { title: 'Notifications', description: 'Email and SMS reminders for due dates', enabled: true },
+    { title: 'Dark Mode', description: 'Switch the interface to a dark visual theme', enabled: true },
+    { title: 'Security', description: 'Two-factor and access control policies', enabled: true },
+    { title: 'Localization', description: 'Currency, date format, and region preferences', enabled: false },
+  ],
+  dashboard: {
+    totalBooks: 1248,
+    availableBooks: 876,
+    issuedBooks: 192,
+    overdueBooks: 12,
+    totalMembers: 356,
+    activeMembers: 298,
+    totalStaff: 18,
+    todaysIssues: 34,
+    todaysReturns: 29,
+    collectedFine: 8400,
+    pendingFines: 3200,
+    monthlyRevenue: 84200,
+    reservedBooks: 48,
+    netCollection: 67000,
+  },
+};
+
+function ensureDbFile() {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
+  if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(defaultData, null, 2));
+  }
+}
+
+function readDb() {
+  ensureDbFile();
+  const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    return defaultData;
+  }
+}
+
+function writeDb(data) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+function generateToken() {
+  return `demo-token-${Date.now()}`;
+}
+
+function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  next();
+}
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Library API is running' });
+});
+
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body || {};
+  const db = readDb();
+  const user = db.users.find(
+    (u) => u.email === email && u.password === password
+  );
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid credentials',
+    });
+  }
+
+  const safeUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    status: user.status,
+  };
+
+  return res.json({
+    success: true,
+    data: {
+      token: generateToken(),
+      user: safeUser,
+    },
+  });
+});
+
+app.get('/api/dashboard', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.dashboard });
+});
+
+app.get('/api/books', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.books });
+});
+
+app.post('/api/books', authMiddleware, (req, res) => {
+  const db = readDb();
+  const payload = req.body;
+  const newBook = {
+    _id: payload._id || `b-${Date.now()}`,
+    bookId: payload.bookId,
+    isbn: payload.isbn,
+    bookName: payload.bookName,
+    quantity: Number(payload.quantity || 0),
+    availableQuantity: Number(payload.availableQuantity || payload.quantity || 0),
+    status: payload.status || 'AVAILABLE',
+  };
+
+  db.books.unshift(newBook);
+  writeDb(db);
+  res.status(201).json({ success: true, data: newBook });
+});
+
+app.patch('/api/books/:id', authMiddleware, (req, res) => {
+  const db = readDb();
+  const { id } = req.params;
+  const index = db.books.findIndex((book) => book._id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'Book not found' });
+  }
+
+  db.books[index] = { ...db.books[index], ...req.body };
+  writeDb(db);
+  res.json({ success: true, data: db.books[index] });
+});
+
+app.delete('/api/books/:id', authMiddleware, (req, res) => {
+  const db = readDb();
+  db.books = db.books.filter((book) => book._id !== req.params.id);
+  writeDb(db);
+  res.json({ success: true, message: 'Book deleted successfully' });
+});
+
+app.get('/api/members', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.members });
+});
+
+app.post('/api/members', authMiddleware, (req, res) => {
+  const db = readDb();
+  const payload = req.body;
+  const newMember = {
+    _id: payload._id || `m-${Date.now()}`,
+    memberId: payload.memberId,
+    name: payload.name,
+    email: payload.email,
+    mobile: payload.mobile,
+    status: payload.status || 'ACTIVE',
+  };
+
+  db.members.unshift(newMember);
+  writeDb(db);
+  res.status(201).json({ success: true, data: newMember });
+});
+
+app.patch('/api/members/:id', authMiddleware, (req, res) => {
+  const db = readDb();
+  const { id } = req.params;
+  const index = db.members.findIndex((member) => member._id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: 'Member not found' });
+  }
+
+  db.members[index] = { ...db.members[index], ...req.body };
+  writeDb(db);
+  res.json({ success: true, data: db.members[index] });
+});
+
+app.delete('/api/members/:id', authMiddleware, (req, res) => {
+  const db = readDb();
+  db.members = db.members.filter((member) => member._id !== req.params.id);
+  writeDb(db);
+  res.json({ success: true, message: 'Member deleted successfully' });
+});
+
+app.get('/api/issues', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.issues });
+});
+
+app.get('/api/fines', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.fines });
+});
+
+app.get('/api/payments', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.payments });
+});
+
+app.get('/api/reports', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({
+    success: true,
+    data: {
+      bookUtilization: 81,
+      memberRetention: 92,
+      lateReturns: 7.2,
+      annualRevenue: '₹8.4L',
+      monthlyUsage: [68, 72, 81, 76, 90, 83, 94],
+      resourceDistribution: [58, 24, 12, 6],
+    },
+  });
+});
+
+app.get('/api/users', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.users.map(({ password, ...rest }) => rest) });
+});
+
+app.get('/api/settings', authMiddleware, (req, res) => {
+  const db = readDb();
+  res.json({ success: true, data: db.settings });
+});
+
+app.listen(PORT, () => {
+  console.log(`Library API running on http://localhost:${PORT}`);
+});

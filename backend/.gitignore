@@ -1,0 +1,208 @@
+{
+  "users": [
+    {
+      "id": "USR-01",
+      "name": "Library Owner",
+      "email": "owner@library.com",
+      "password": "ChangeMe@12345",
+      "role": "Administrator",
+      "status": "Active"
+    },
+    {
+      "id": "USR-02",
+      "name": "Priya Sharma",
+      "email": "priya@library.com",
+      "password": "library123",
+      "role": "Librarian",
+      "status": "Active"
+    }
+  ],
+  "books": [
+    {
+      "_id": "b1",
+      "bookId": "BK-1001",
+      "isbn": "978-1-2345-6789-0",
+      "bookName": "Atomic Habits",
+      "quantity": 12,
+      "availableQuantity": 9,
+      "status": "AVAILABLE"
+    },
+    {
+      "_id": "b2",
+      "bookId": "BK-1002",
+      "isbn": "978-0-1234-5678-9",
+      "bookName": "The Alchemist",
+      "quantity": 8,
+      "availableQuantity": 4,
+      "status": "ISSUED"
+    },
+    {
+      "_id": "b3",
+      "bookId": "BK-1003",
+      "isbn": "978-9-8765-4321-0",
+      "bookName": "Rich Dad Poor Dad",
+      "quantity": 15,
+      "availableQuantity": 12,
+      "status": "AVAILABLE"
+    },
+    {
+      "_id": "b4",
+      "bookId": "BK-1004",
+      "isbn": "978-2-3456-7890-1",
+      "bookName": "Deep Work",
+      "quantity": 10,
+      "availableQuantity": 2,
+      "status": "RESERVED"
+    }
+  ],
+  "members": [
+    {
+      "_id": "m1",
+      "memberId": "MEM-101",
+      "name": "Aditi Sharma",
+      "email": "aditi@gmail.com",
+      "mobile": "9876543210",
+      "status": "ACTIVE"
+    },
+    {
+      "_id": "m2",
+      "memberId": "MEM-102",
+      "name": "Rahul Verma",
+      "email": "rahul@gmail.com",
+      "mobile": "9123456780",
+      "status": "ACTIVE"
+    },
+    {
+      "_id": "m3",
+      "memberId": "MEM-103",
+      "name": "Neha Singh",
+      "email": "neha@gmail.com",
+      "mobile": "9988776655",
+      "status": "INACTIVE"
+    }
+  ],
+  "issues": [
+    {
+      "id": "ISS-001",
+      "member": "Aditi Sharma",
+      "book": "Atomic Habits",
+      "dueDate": "2026-10-05",
+      "status": "Issued"
+    },
+    {
+      "id": "ISS-002",
+      "member": "Rahul Verma",
+      "book": "Deep Work",
+      "dueDate": "2026-10-02",
+      "status": "Overdue"
+    },
+    {
+      "id": "ISS-003",
+      "member": "Neha Singh",
+      "book": "The Alchemist",
+      "dueDate": "2026-10-07",
+      "status": "Returned"
+    },
+    {
+      "id": "ISS-004",
+      "member": "Vikram Singh",
+      "book": "Rich Dad Poor Dad",
+      "dueDate": "2026-10-09",
+      "status": "Issued"
+    }
+  ],
+  "fines": [
+    {
+      "id": "FN-101",
+      "member": "Rahul Verma",
+      "amount": 250,
+      "status": "Pending"
+    },
+    {
+      "id": "FN-102",
+      "member": "Aditi Sharma",
+      "amount": 120,
+      "status": "Paid"
+    },
+    {
+      "id": "FN-103",
+      "member": "Vikram Singh",
+      "amount": 380,
+      "status": "Pending"
+    },
+    {
+      "id": "FN-104",
+      "member": "Neha Singh",
+      "amount": 90,
+      "status": "Paid"
+    }
+  ],
+  "payments": [
+    {
+      "id": "PAY-1001",
+      "member": "Aditi Sharma",
+      "method": "UPI",
+      "amount": 420,
+      "date": "2026-10-01"
+    },
+    {
+      "id": "PAY-1002",
+      "member": "Rahul Verma",
+      "method": "Card",
+      "amount": 680,
+      "date": "2026-09-30"
+    },
+    {
+      "id": "PAY-1003",
+      "member": "Neha Singh",
+      "method": "Cash",
+      "amount": 150,
+      "date": "2026-09-28"
+    },
+    {
+      "id": "PAY-1004",
+      "member": "Vikram Singh",
+      "method": "UPI",
+      "amount": 540,
+      "date": "2026-09-25"
+    }
+  ],
+  "settings": [
+    {
+      "title": "Notifications",
+      "description": "Email and SMS reminders for due dates",
+      "enabled": true
+    },
+    {
+      "title": "Dark Mode",
+      "description": "Switch the interface to a dark visual theme",
+      "enabled": true
+    },
+    {
+      "title": "Security",
+      "description": "Two-factor and access control policies",
+      "enabled": true
+    },
+    {
+      "title": "Localization",
+      "description": "Currency, date format, and region preferences",
+      "enabled": false
+    }
+  ],
+  "dashboard": {
+    "totalBooks": 1248,
+    "availableBooks": 876,
+    "issuedBooks": 192,
+    "overdueBooks": 12,
+    "totalMembers": 356,
+    "activeMembers": 298,
+    "totalStaff": 18,
+    "todaysIssues": 34,
+    "todaysReturns": 29,
+    "collectedFine": 8400,
+    "pendingFines": 3200,
+    "monthlyRevenue": 84200,
+    "reservedBooks": 48,
+    "netCollection": 67000
+  }
+}
