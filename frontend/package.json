@@ -1,0 +1,30 @@
+{
+  "name": "library-management-system-frontend",
+  "version": "1.0.0",
+  "description": "Modern Frontend for Library Management System",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.0",
+    "framer-motion": "^10.16.4",
+    "axios": "^1.4.0",
+    "react-icons": "^4.11.0",
+    "zustand": "^4.3.9",
+    "tailwindcss": "^3.3.0",
+    "chart.js": "^4.3.0",
+    "react-chartjs-2": "^5.2.0",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^4.4.5",
+    "postcss": "^8.4.24",
+    "autoprefixer": "^10.4.14"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
