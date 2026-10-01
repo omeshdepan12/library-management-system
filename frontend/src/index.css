@@ -1,36 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { FiBell, FiMoon, FiShield, FiGlobe, FiCheck } from 'react-icons/fi';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+const settingsSections = [
+  { title: 'Notifications', description: 'Email and SMS reminders for due dates', icon: FiBell, enabled: true },
+  { title: 'Dark Mode', description: 'Switch the interface to a dark visual theme', icon: FiMoon, enabled: true },
+  { title: 'Security', description: 'Two-factor and access control policies', icon: FiShield, enabled: true },
+  { title: 'Localization', description: 'Currency, date format, and region preferences', icon: FiGlobe, enabled: false },
+];
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
+const SettingsPage = () => {
+  const [items, setItems] = useState(settingsSections);
 
-#root {
-  min-height: 100vh;
-}
+  const toggleItem = (index) => {
+    setItems((prev) => prev.map((item, i) => i === index ? { ...item, enabled: !item.enabled } : item));
+  };
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-}
+  return (
+    <div className="p-8 bg-slate-50 min-h-screen">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">System</p>
+        <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
+      </motion.div>
 
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {items.map((item, index) => (
+          <motion.div key={item.title} whileHover={{ y: -4 }} className="bg-white rounded-3xl border border-slate-200 shadow-md p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 rounded-2xl bg-slate-100 text-slate-700"><item.icon className="text-xl" /></div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">{item.title}</h2>
+                  <p className="text-slate-600 mt-1">{item.description}</p>
+                </div>
+              </div>
 
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
-}
+              <button
+                onClick={() => toggleItem(index)}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition ${item.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${item.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
+export default SettingsPage;
