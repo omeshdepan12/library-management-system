@@ -1,92 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Login from './pages/Login';
+import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import BooksPage from './pages/BooksPage';
+import MembersPage from './pages/MembersPage';
+import './index.css';
 
 function App() {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        if (!token) {
-          setError('Please login first');
-          setLoading(false);
-          return;
+  React.useEffect(() => {
+    const fetchDashboard = async () => {
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:5000/api/dashboard', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          setDashboardData(data.data);
+        } catch (error) {
+          console.error('Failed to fetch dashboard:', error);
         }
-
-        const response = await axios.get(`${API_BASE_URL}/dashboard`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setDashboardData(response.data.data);
-        setError(null);
-      } catch (err) {
-        console.error('Dashboard fetch error:', err);
-        setError(err.response?.data?.message || 'Failed to fetch dashboard data');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
-
-    fetchDashboardData();
+    fetchDashboard();
   }, [token]);
 
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl text-center">
-          <h1 className="text-3xl font-bold mb-4">Library Management System</h1>
-          <p className="text-gray-600 mb-6">Please login to access dashboard</p>
-          <input
-            type="text"
-            placeholder="Enter token"
-            onChange={(e) => {
-              localStorage.setItem('token', e.target.value);
-              setToken(e.target.value);
-            }}
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-          />
-        </div>
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4" />
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="text-white text-6xl"
+        >
+          📚
+        </motion.div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 max-w-md text-center">
-          <p className="text-red-600 font-semibold mb-4">Error</p>
-          <p className="text-gray-700 mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+  if (!token) {
+    return <Login onLoginSuccess={(token) => { setToken(token); localStorage.setItem('token', token); }} />;
   }
 
-  return <Dashboard data={dashboardData} />;
+  return (
+    <BrowserRouter>
+      <Layout user={user} onLogout={handleLogout}>
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <Dashboard data={dashboardData} />
+                </motion.div>
+              }
+            />
+            <Route
+              path="/books"
+              element={
+                <motion.div key="books" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <BooksPage token={token} />
+                </motion.div>
+              }
+            />
+            <Route
+              path="/members"
+              element={
+                <motion.div key="members" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <MembersPage token={token} />
+                </motion.div>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </AnimatePresence>
+      </Layout>
+    </BrowserRouter>
+  );
 }
 
 export default App;
